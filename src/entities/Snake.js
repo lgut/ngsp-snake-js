@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import Direction from "../helpers/Direction";
-import { Block, BlockTypes } from "./Block";
+import { Block, BlockTypes, BlockProperties } from "./Block";
+import { shiftPosition } from "../helpers/shiftPosition";
+import { randInt } from "../helpers/random";
 
 const MovementKeys = {
 	up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -9,143 +11,133 @@ const MovementKeys = {
 	right: Phaser.Input.Keyboard.KeyCodes.D
 };
 
-export class Snake extends Phaser.GameObjects.Container {
-	constructor(scene) {
-		super(scene, 200, 200);
-		this.scene.add.existing(this);
+export class Snake {
+	/**
+	 * 
+	 * @param {Phaser.Scene} scene 
+	 */
+	constructor(scene, x, y) {
+		this.scene = scene;
 
-		this.currDirection = Direction.Left;
-		this.nextDirection = this.currDirection;
-		this.timeSinceLastMovement = 0;
-		this.blocks = [];
+		this.direction = Direction.Right;
+		this.heading = this.direction;
+		this.isAlive = true;
+		this.speed = 100;
+		this.moveTime = 0;
+
+		this.body = scene.add.group();
 		/**
-     * @property {number}
-     * @description How much time should pass before the snake moves. In milliseconds
-     */
-		this.movementInterval = 1000;
-		// initial creation of snake 
-		this.addBlock(new Block(this.scene, 0, 32));
-		this.addBlock(new Block(this.scene, 0, 64));
-		this.addBlock(new Block(this.scene, 0, 96));
+		 * @type {Block}
+		 */
+		//this.head = this.body.create(x * 32, y * 32, "body");
+		this.head = new Block(scene, x * BlockProperties.width, y * BlockProperties.width);
+		this.body.add(this.head, true);
+		this.head.setOrigin(0, 0);
+		this.headPosition = new Phaser.Geom.Point(x, y);
+		this.tailPosition = new Phaser.Geom.Point(x, y);
 		this.controls = this.scene.input.keyboard.addKeys(MovementKeys);
 	}
 
-	/**
-	 * 	
-	 * @param {Block} block 
-	 */
-	addBlock(block){
-		this.blocks.push(block);
-		this.add(block);
+	update(time) {
+		if (time >= this.moveTime) {
+			return this.move(time);
+		}
 	}
-
 
 	/**
 	 * 
 	 * @param {Direction} direction 
 	 */
 	changeDirection(direction) {
-		this.nextDirection = direction;
+		const { Up, Down, Left, Right } = Direction;
+
+		switch (direction) {
+			case Left:
+			case Right:
+				if (this.direction === Up || this.direction === Down) {
+					this.heading = direction;
+				}
+				break;
+			case Up:
+			case Down:
+				if (this.direction === Left || this.direction === Right) {
+					this.heading = direction;
+				}
+				break;
+		}
+	}
+
+	grow() {
+		const x = this.tailPosition.x * BlockProperties.width + BlockProperties.width;
+		const y = this.tailPosition.y * BlockProperties.width + BlockProperties.width;
+		const segment = new Block(this.scene, x ,y);
+		this.body.add(segment,true);
+		this.tailPosition.setTo(x,y);
+
+	}
+
+	isDead(){
+		/**
+		 * @type {Block}
+		 */
+		const hit = Phaser.Actions.GetFirst(this.body.getChildren(),{x:this.head.x,y:this.head.y},1);
+		if(hit){
+			return true;
+		}
+
+		
 	}
 
 	/**
    *
-   * @param {number} dt Delta time.
+   * @param {number} time Delta time.
    */
-	moveSnake() {
-		/**
-     * @type {Block[]}
-     */
-		const children = this.blocks;
-		const head = children[0];
-		let nextPos = { x: null, y: null };
-		// DETERMINE NEXT POSITION OF SNAKE HEAD
-		if (this.currDirection === this.nextDirection) {
-			switch (this.nextDirection) {
-				case Direction.Up:
-					nextPos.x = head.x;
-					nextPos.y = head.y - head.blockSize;
-					break;
-				case Direction.Down:
-					nextPos.x = head.x;
-					nextPos.y + head.y + head.blockSize;
-					break;
-				case Direction.Left:
-					nextPos.x = head.x - head.blockSize;
-					nextPos.y = head.y;
-					break;
-				case Direction.Right:
-					nextPos.x = head.x + head.blockSize;
-					nextPos.y = head.y;
-					break;
-			}
-		} else if (Direction.getOpposite(this.currDirection) !== this.nextDirection) {
-			// if next direction is opposite of current direction than it will be ignored
-			if (this.currDirection === Direction.Down) {
-				switch (this.nextDirection) {
-					case Direction.Left:
-						nextPos.x = head.x - head.blockSize;
-						nextPos.y = head.y - head.blockSize;
-						break;
-					case Direction.Right:
-						nextPos.x = head.x + head.blockSize;
-						nextPos.y = head.y - head.blockSize;
-						break;
-				}
-			} else if (this.currDirection === Direction.Up) {
-				switch (this.nextDirection) {
-					case Direction.Left:
-						nextPos.x = head.x - head.blockSize;
-						nextPos.y = head.y + head.blockSize;
-						break;
-					case Direction.Right:
-						nextPos.x = head.x + head.blockSize;
-						nextPos.y = head.y + head.blockSize;
-						break;
-				}
-			} else if (this.currDirection === Direction.Right) {
-				switch (this.nextDirection) {
-					case Direction.Up:
-						nextPos.x = head.x - head.blockSize;
-						nextPos.y = head.y - head.blockSize;
-						break;
-					case Direction.Down:
-						nextPos.x = head.x - head.blockSize;
-						nextPos.y = head.y + head.blockSize;
-						break;
-				}
-			} else if (this.currDirection === Direction.Left) {
-				switch (this.nextDirection) {
-					case Direction.Up:
-						nextPos.x = head.x + head.blockSize;
-						nextPos.y = head.y - head.blockSize;
-						break;
-					case Direction.Down:
-						nextPos.x = head.x + head.blockSize;
-						nextPos.y = head.y + head.blockSize;
-						break;
-				}
-			}
-		}
-		//END DETERMINE NEXT POSITION
+	move(time) {
+		const { Down, Left, Right, Up } = Direction;
 
-		// move every snake child to the position of it's front sibling
-		// except for the snake head. It's position was determined by the previous logic
-		for (let i = 0; i < children.length; i++) {
-			const child = children[i];
-			if (i === 0) {
-				child.setFillStyle(0xff0000);
-			}
-			const newNextPos = {
-				x: child.x,
-				y: child.y
-			};
-
-			child.x = nextPos.x;
-			child.y = nextPos.y;
-			nextPos = newNextPos;
+		switch (this.heading) {
+			case Left:
+				this.headPosition.x = Phaser.Math.Wrap(this.headPosition.x - 1, 0, this.scene.game.config.width / BlockProperties.width);
+				break;
+			case Right:
+				this.headPosition.x = Phaser.Math.Wrap(this.headPosition.x + 1, 0, this.scene.game.config.width / BlockProperties.width);
+				break;
+			case Up:
+				this.headPosition.y = Phaser.Math.Wrap(this.headPosition.y - 1, 0, this.scene.game.config.height / BlockProperties.width);
+				break;
+			case Down:
+				this.headPosition.y = Phaser.Math.Wrap(this.headPosition.y + 1, 0, this.scene.game.config.height / BlockProperties.width);
+				break;
 		}
-		this.currDirection = this.nextDirection;
+		this.direction = this.heading;
+
+		// update body segments
+		shiftPosition(this.body.getChildren(), this.headPosition.x * BlockProperties.width, this.headPosition.y * BlockProperties.width);
+
+		// update timer
+		this.moveTime = time + this.speed;
+		if (this.isDead()) {
+			this.isAlive = false;
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 
+	 * @param {Block} apple 
+	 */
+	collideWithFood(apple) {
+
+		const playerX = this.head.x;
+		const playerY = this.head.y;
+		const appleX = apple.x;
+		const appleY = apple.y;
+
+		if (playerX === appleX && playerY === appleY) {
+			return true;
+		}
+		return false;
 	}
 
 }

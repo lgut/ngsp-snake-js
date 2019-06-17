@@ -21,17 +21,16 @@ export const BlockTypes = {
  */
 export const BlockProperties = {
 	bumper:5,
-	width: 32,
-	blockSize: 5 + 32,
+	width: 16,
+	blockSize: 5 + 16,
 };
 
 
 export class Block extends Phaser.GameObjects.Rectangle {
 	constructor(scene, x, y, width = BlockProperties.width, type = BlockTypes.Snake) {
 		super(scene, x, y, width, width);
+		this.setOrigin(0,0);
 		this._bumper = BlockProperties.bumper;
-		this.x+= this._bumper;
-		this.y+= this._bumper;
 		this.blockType = type;
 	}
 
