@@ -15,17 +15,31 @@ export class MainScene extends Phaser.Scene {
 		 */
 		this.apple;
 		this.cdt = 0;
+		this.score = 0;
+	}
+
+	updateScore() {
+		this.score += 1;
+		const scoreText = `Score: ${this.score}`;
+		this.scoreKeeper.setText(scoreText);
+
 	}
 
 	create() {
 		this.player = new Snake(this, 8, 8);
 		this.apple = this.createApple();
 		this.add.existing(this.apple);
+		// Would be helpful to seperate the score keeper to a seperate class
+		this.scoreKeeper = this.add.text(16, 16, `Score: ${this.score}`,
+			{ fontSize: "16px", fill: "#ffffff" }
+		);
+		this.scoreKeeper.depth = 100;
 	}
 
 
 	createApple() {
-		const { x, y } = getRandPosition(this.game);
+		const { width, height } = this.game.config;
+		const { x, y } = getRandPosition(width, height);
 
 		const apple = new Apple(this, x * BlockProperties.width, y * BlockProperties.width);
 		return apple;
@@ -48,20 +62,12 @@ export class MainScene extends Phaser.Scene {
 		}
 
 		if (this.player.update(time)) {
-			// TODO: encapsuate this logic in Snake and apple classes
 			if (this.player.collideWithFood(this.apple)) {
-				this.apple.eat();
+				this.apple.eat(this.player);
 				this.player.grow();
+				this.updateScore();
 			}
-		} else {
-			console.log("you dead"); //eslint-disable-line
+
 		}
 	}
 }
-
-/**
- * TODO::
- * - create apple class that extends Block
- * - - apple class should have an eat method that resets it's position
- * - snake class needs a die
- */

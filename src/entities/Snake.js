@@ -70,22 +70,31 @@ export class Snake {
 	grow() {
 		const x = this.tailPosition.x * BlockProperties.width + BlockProperties.width;
 		const y = this.tailPosition.y * BlockProperties.width + BlockProperties.width;
-		const segment = new Block(this.scene, x ,y);
-		this.body.add(segment,true);
-		this.tailPosition.setTo(x,y);
+		const segment = new Block(this.scene, x, y);
+		this.body.add(segment, true);
+		this.tailPosition.setTo(x, y);
 
 	}
 
-	isDead(){
+	isEatingSelf() {
 		/**
 		 * @type {Block}
 		 */
-		const hit = Phaser.Actions.GetFirst(this.body.getChildren(),{x:this.head.x,y:this.head.y},1);
-		if(hit){
+		//const hit = Phaser.Actions.GetFirst(this.body.getChildren(),{x:this.head.x,y:this.head.y},1);
+		//	if(hit){
+		//		return true;
+		//	}
+
+		// this finds all children which (x,y) coordinates that match head coordinates
+		const hits = this.body.getChildren().filter((child) => child.x === this.head.x && child.y === this.head.y);
+		// hits[0] will be the head itself, hits[1] will be the blck head collided with, if it exists
+		const hit = hits[1];
+		if (hit) {
 			return true;
 		}
+		return false;
 
-		
+
 	}
 
 	/**
@@ -116,7 +125,7 @@ export class Snake {
 
 		// update timer
 		this.moveTime = time + this.speed;
-		if (this.isDead()) {
+		if (this.isEatingSelf()) {
 			this.isAlive = false;
 			return false;
 		}
