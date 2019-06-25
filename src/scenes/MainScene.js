@@ -26,6 +26,7 @@ export class MainScene extends Phaser.Scene {
 	}
 
 	create() {
+		//TODO: random start pos
 		this.player = new Snake(this, 8, 8);
 		this.apple = this.createApple();
 		this.add.existing(this.apple);
@@ -65,6 +66,12 @@ export class MainScene extends Phaser.Scene {
 			if (this.player.collideWithFood(this.apple)) {
 				this.apple.eat(this.player);
 				this.player.grow();
+
+				// difficulty scaling
+				if (this.score > 0 && this.score % 5 === 0){
+					this.player.increaseSpeed();
+				}
+
 				this.updateScore();
 			}
 

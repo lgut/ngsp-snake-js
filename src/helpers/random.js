@@ -5,7 +5,6 @@ export const randInt = (min, max) => {
 	return Math.floor(Math.random() * (max - min) + min);
 };
 
-//FIXME: refactor to return random coordinates multipled by blockwidth
 /**
  * Gets a random position within the canvas' bounds
  * @param {number} gameWidth

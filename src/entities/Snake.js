@@ -15,11 +15,21 @@ export class Snake {
 	/**
 	 * 
 	 * @param {Phaser.Scene} scene 
+	 * @param {number} x starting grid position x value
+	 * @param {number} y starting grid positikon y value
+	 * @param {Direction=} direction starting direction. Optional
 	 */
-	constructor(scene, x, y) {
+	constructor(scene, x, y, direction) {
 		this.scene = scene;
 
-		this.direction = Direction.Right;
+		if (direction) {
+			// decided not to validate strings
+			this.direction = direction;
+		}else{
+			const directions = Object.values(Direction);
+			const direction = directions[randInt(0, directions.length - 1)];
+			this.direction = direction;
+		}
 		this.heading = this.direction;
 		this.isAlive = true;
 		this.speed = 100;
@@ -29,10 +39,12 @@ export class Snake {
 		/**
 		 * @type {Block}
 		 */
-		//this.head = this.body.create(x * 32, y * 32, "body");
 		this.head = new Block(scene, x * BlockProperties.width, y * BlockProperties.width);
 		this.body.add(this.head, true);
 		this.head.setOrigin(0, 0);
+		// these grid positions
+		// This distiction can be confusing
+		// in finalized lesson plan students should consistantly use raw coordinates
 		this.headPosition = new Phaser.Geom.Point(x, y);
 		this.tailPosition = new Phaser.Geom.Point(x, y);
 		this.controls = this.scene.input.keyboard.addKeys(MovementKeys);
@@ -74,6 +86,10 @@ export class Snake {
 		this.body.add(segment, true);
 		this.tailPosition.setTo(x, y);
 
+	}
+
+	increaseSpeed(){
+		this.speed*=0.9;
 	}
 
 	isEatingSelf() {
