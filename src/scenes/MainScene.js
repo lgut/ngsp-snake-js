@@ -14,8 +14,6 @@ export class MainScene extends Phaser.Scene {
 		 * @type {Apple}
 		 */
 		this.apple;
-		this.cdt = 0;
-		this.score = 0;
 	}
 
 	updateScore() {
@@ -26,6 +24,7 @@ export class MainScene extends Phaser.Scene {
 	}
 
 	create() {
+		this.score = 0;
 		//TODO: random start pos
 		this.player = new Snake(this, 8, 8);
 		this.apple = this.createApple();
@@ -35,8 +34,16 @@ export class MainScene extends Phaser.Scene {
 			{ fontSize: "16px", fill: "#ffffff" }
 		);
 		this.scoreKeeper.depth = 100;
+
+		this.player.controls.pause.onDown = this.pauseScene.bind(this);
 	}
 
+	pauseScene() {
+		if (this.player.isAlive) {
+			this.game.scene.start("pause", { parentScene: this });
+			this.scene.pause();
+		}
+	}
 
 	createApple() {
 		const { width, height } = this.game.config;
@@ -49,6 +56,8 @@ export class MainScene extends Phaser.Scene {
 
 	update(time, dt) {
 		if (!this.player.isAlive) {
+			this.game.scene.start("game over", { score: this.score });
+			this.scene.pause();
 			return;
 		}
 
@@ -68,7 +77,7 @@ export class MainScene extends Phaser.Scene {
 				this.player.grow();
 
 				// difficulty scaling
-				if (this.score > 0 && this.score % 5 === 0){
+				if (this.score > 0 && this.score % 5 === 0) {
 					this.player.increaseSpeed();
 				}
 

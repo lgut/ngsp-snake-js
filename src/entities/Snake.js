@@ -8,8 +8,14 @@ const MovementKeys = {
 	up: Phaser.Input.Keyboard.KeyCodes.W,
 	down: Phaser.Input.Keyboard.KeyCodes.S,
 	left: Phaser.Input.Keyboard.KeyCodes.A,
-	right: Phaser.Input.Keyboard.KeyCodes.D
+	right: Phaser.Input.Keyboard.KeyCodes.D,
+	pause: Phaser.Input.Keyboard.KeyCodes.SPACE,
+	restart: Phaser.Input.Keyboard.KeyCodes.R,
 };
+// a pause key is created in multiple sceens
+// in the interest of reducing code duplication
+// it would be better to create some controls object that sereral scenes could listen to
+// or not, perhaps it is worth it to keep two seperate implementations
 
 export class Snake {
 	/**
