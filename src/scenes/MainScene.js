@@ -25,7 +25,6 @@ export class MainScene extends Phaser.Scene {
 
 	create() {
 		this.score = 0;
-		//TODO: random start pos
 		this.player = new Snake(this, 8, 8);
 		this.apple = this.createApple();
 		this.add.existing(this.apple);
@@ -33,7 +32,7 @@ export class MainScene extends Phaser.Scene {
 		this.scoreKeeper = this.add.text(16, 16, `Score: ${this.score}`,
 			{ fontSize: "16px", fill: "#ffffff" }
 		);
-		this.scoreKeeper.depth = 100;
+		this.scoreKeeper.depth = Infinity;
 
 		this.player.controls.pause.onDown = this.pauseScene.bind(this);
 	}

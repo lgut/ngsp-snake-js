@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 
-//TODO: Using graphing algorithm to make self playing snake backdrop
 
 export class StartScreen extends Phaser.Scene {
 	constructor() {
@@ -53,7 +52,13 @@ export class StartScreen extends Phaser.Scene {
 		this.start = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 		this.start.once("down", () => {
 			// switch scene
+			this.scene.stop("start background");
 			this.scene.start("main");
 		});
+		this.playBackground();
+	}
+
+	playBackground(){
+		this.game.scene.start("start background").moveBelow("start background","start");
 	}
 }

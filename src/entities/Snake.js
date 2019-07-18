@@ -31,7 +31,7 @@ export class Snake {
 		if (direction) {
 			// decided not to validate strings
 			this.direction = direction;
-		}else{
+		} else {
 			const directions = Object.values(Direction);
 			const direction = directions[randInt(0, directions.length - 1)];
 			this.direction = direction;
@@ -94,18 +94,18 @@ export class Snake {
 
 	}
 
-	increaseSpeed(){
-		this.speed*=0.9;
+	/**
+	 * Increases the speed of the snake
+	 * @param {number=} muliplier Number between 0 and 1 by which to increase speed by. Default 0.9
+	 */
+	increaseSpeed(muliplier=0.9) {
+		this.speed *= muliplier;
 	}
 
 	isEatingSelf() {
 		/**
 		 * @type {Block}
 		 */
-		//const hit = Phaser.Actions.GetFirst(this.body.getChildren(),{x:this.head.x,y:this.head.y},1);
-		//	if(hit){
-		//		return true;
-		//	}
 
 		// this finds all children which (x,y) coordinates that match head coordinates
 		const hits = this.body.getChildren().filter((child) => child.x === this.head.x && child.y === this.head.y);
@@ -143,9 +143,29 @@ export class Snake {
 		this.direction = this.heading;
 
 		// update body segments
-		shiftPosition(this.body.getChildren(), this.headPosition.x * BlockProperties.width, this.headPosition.y * BlockProperties.width);
+		this.updateBody();
 
 		// update timer
+		return this.updateTimer(time);
+	}
+
+	/**
+	 * This function was created for when the snake plays itself
+	 * and as such lacks much of the logic that the move function has.
+	 * X and Y are normal coordinates
+	 * @param {number} x 
+	 * @param {number} y 
+	 */
+	moveTo(time, x, y) {
+		shiftPosition(this.body.getChildren(), x, y);
+		return this.updateTimer(time);
+	}
+
+	updateBody() {
+		shiftPosition(this.body.getChildren(), this.headPosition.x * BlockProperties.width, this.headPosition.y * BlockProperties.width);
+	}
+
+	updateTimer(time) {
 		this.moveTime = time + this.speed;
 		if (this.isEatingSelf()) {
 			this.isAlive = false;
